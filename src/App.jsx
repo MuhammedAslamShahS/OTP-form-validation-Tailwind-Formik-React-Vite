@@ -21,9 +21,11 @@ function App() {
     const handleChange = (event, index) => {
         const { name, value } = event.target;
 
+        if (/[a-z]/gi.test(value)) return;
+
         setOtp((prev) => ({
             ...prev,
-            [name]: value,
+            [name]: value.slice(-1),
         }));
         value && index < 5 ? inputRef.current[index + 1].focus() : null;
     };
@@ -37,8 +39,8 @@ function App() {
             <input
                 key={index}
                 ref={(element) => (inputRef.current[index] = element)}
-                maxLength={1}
                 type="text"
+                value={otp[keys]}
                 name={keys}
                 className="w-16 h-12 rounded-md mr-3 text-center text-xl outline-none bg-white"
                 onChange={(event) => handleChange(event, index)}
