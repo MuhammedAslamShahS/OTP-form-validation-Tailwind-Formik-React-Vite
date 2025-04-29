@@ -1,18 +1,30 @@
 import { useEffect, useRef, useState } from "react";
-
 import "./App.css";
+import { Formik, useFormik } from "formik";
 
+const validate = (values) => {
+    const errors = {};
+
+    if (Object.values(values.otp).some((data) => data === "")) {
+        errors.otp = "This feilds is ewquired";
+    }
+    return errors;
+};
+
+// handleChange:formikhandle becuase handleChange is alredy used
 function App() {
-    const inputRef = useRef({});
+    const formik = useFormik({
+        initialValues: {
+            otp: Array.from({ length: 6 }).fill(""),
+        },
 
-    const [otp, setOtp] = useState({
-        digitOne: "",
-        digitTwo: "",
-        digitThree: "",
-        digitFour: "",
-        digitFive: "",
-        digitSix: "",
+        validate,
+        onSubmit: (values) => {
+            console.log(values.otp.join(""));
+        },
     });
+
+    const inputRef = useRef({});
 
     useEffect(() => {
         inputRef.current[0]?.focus();
@@ -33,29 +45,39 @@ function App() {
     };
 
     const handleChange = (event, index) => {
-        const { name, value } = event.target;
+        const { value } = event.target;
 
         if (/[a-z]/gi.test(value)) return;
 
-        setOtp((prev) => ({
+        const currentOTP = [...formik.values.otp];
+        currentOTP[index] = value.slice(-1);
+
+        formik.setValues((prev) => ({
             ...prev,
-            [name]: value.slice(-1),
+            otp: currentOTP,
         }));
-        value && index < 5 ? inputRef.current[index + 1].focus() : null;
+
+        if (value && index < 5) {
+            inputRef.current[index + 1].focus();
+        }
     };
 
     const handleBackSpace = (event, index) => {
-        event.key === "Backspace" ? inputRef.current[index - 1]?.focus() : null;
+        if (event.key === "Backspace") {
+            if (index > 0) {
+                inputRef.current[index - 1].focus();
+            }
+        }
     };
 
     const renderInput = () => {
-        return Object.keys(otp).map((keys, index) => (
+        return formik.values.otp.map((value, index) => (
             <input
                 key={index}
                 ref={(element) => (inputRef.current[index] = element)}
                 type="text"
-                value={otp[keys]}
-                name={keys}
+                value={value}
+                name={index}
                 className="w-16 h-12 rounded-md mr-3 text-center text-xl outline-none bg-white"
                 onChange={(event) => handleChange(event, index)}
                 onKeyUp={(event) => handleBackSpace(event, index)}
@@ -65,9 +87,16 @@ function App() {
     return (
         <form action="">
             <h3 className="text-3xl mb-8 text-amber-100">Enter the OTP</h3>
-            <div>{renderInput()}</div>
 
-            <button className="mt-4 w-32">Submit</button>
+            <Formik>
+                <div>{renderInput()}</div>
+            </Formik>
+
+            {formik.errors.otp && <p className=" mt-3 text-sm text-red-400">please fill the feild</p>}
+
+            <button type="button" className="mt-4 w-32" onClick={formik.handleSubmit}>
+                Submit
+            </button>
         </form>
     );
 }
