@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import "./App.css";
 
 function App() {
+    const inputRef = useRef({});
+
     const [otp, setOtp] = useState({
         digitOne: "",
         digitTwo: "",
@@ -12,25 +14,35 @@ function App() {
         digitSix: "",
     });
 
-    const handleChange = (event) => {
+    useEffect(() => {
+        inputRef.current[0]?.focus;
+    }, []);
+
+    const handleChange = (event, index) => {
         const { name, value } = event.target;
 
         setOtp((prev) => ({
             ...prev,
             [name]: value,
         }));
+        value && index < 5 ? inputRef.current[index + 1].focus() : null;
     };
 
-    console.log(otp);
+    const handleBackSpace = (event, index) => {
+        event.key === "Backspace" ? inputRef.current[index - 1]?.focus() : null;
+    };
 
     const renderInput = () => {
         return Object.keys(otp).map((keys, index) => (
             <input
-            maxLength={1}
+                key={index}
+                ref={(element) => (inputRef.current[index] = element)}
+                maxLength={1}
                 type="text"
                 name={keys}
                 className="w-16 h-12 rounded-md mr-3 text-center text-xl outline-none bg-white"
-                onChange={handleChange}
+                onChange={(event) => handleChange(event, index)}
+                onKeyUp={(event) => handleBackSpace(event, index)}
             />
         ));
     };
